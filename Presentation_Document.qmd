@@ -1,0 +1,15 @@
+---
+title: "Video_game_Price"
+format: html
+editor: visual
+---
+
+##Link and access to the sources
+
+Link to the Github repository: [https://github.com/jbismuth/Video_game_Pricing_Projecthttps://github.com/jbismuth/Video_game_Pricing_Project](https://github.com/jbismuth/Video_game_Pricing_Project)
+
+Link to:
+
+Link to:
+
+\##
