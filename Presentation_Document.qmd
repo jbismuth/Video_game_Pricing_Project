@@ -1,15 +1,21 @@
 ---
-title: "Video_game_Price"
+title: "Video game Pricing"
+author: Jeremy Bismhuth & Zachary Goulby
 format: html
 editor: visual
+langage: en
 ---
 
 ##Link and access to the sources
 
-Link to the Github repository: [https://github.com/jbismuth/Video_game_Pricing_Projecthttps://github.com/jbismuth/Video_game_Pricing_Project](https://github.com/jbismuth/Video_game_Pricing_Project)
+[Link to the Github repository]{.underline}: [Video game Pricing Project](https://github.com/jbismuth/Video_game_Pricing_Project)
 
 Link to:
 
 Link to:
 
-\##
+# Databases Presentation
+
+## Steam Data
+
+## World Bank Data
