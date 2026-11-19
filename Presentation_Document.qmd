@@ -6,16 +6,33 @@ editor: visual
 langage: en
 ---
 
-##Link and access to the sources
-
 [Link to the Github repository]{.underline}: [Video game Pricing Project](https://github.com/jbismuth/Video_game_Pricing_Project)
 
-Link to:
+# Coding Environement preparation
 
-Link to:
+```{r}
+#| message: FALSE
+here::i_am("Video_game_Pricing.Rproj")
+library(here)
+```
+
+```{r}
+#| message: FALSE
+library(ggplot2)
+library(dplyr)
+library(tidyr)
+```
 
 # Databases Presentation
 
 ## Steam Data
+
+### Sources & Reproducibility (Steam Web API)
+
+[Loading the file :]{.underline}
+```{r}
+Steam_raw <- read.csv("Data/Raw_data/steam_data_raw.csv")
+slice_sample(Steam_raw,n=10)
+```
 
 ## World Bank Data
