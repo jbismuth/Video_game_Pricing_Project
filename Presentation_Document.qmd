@@ -21,6 +21,7 @@ library(here)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(knitr)
 ```
 
 # Databases Presentation
@@ -37,26 +38,56 @@ The extraction methodology followed five steps:
 
 - First, we retrieved the entire Steam catalog (along with US prices) by filtering strictly for games, excluding DLCs, soundtracks, and demos, which are not relevant to our study;
 
-- Second, we kept only paid games (`price_us > 0`), since free-to-play titles rely on in-game monetization rather than upfront pricing strategies. 
+- Second, we kept only paid games (`price_us > 0`), since free-to-play titles rely on in-game monetization rather than upfront pricing strategies.
 
 - Third, we divided the paid catalog into four price tiers:
-    - Lower^+^: $< \$5$
-    - Low: $[\$5, \$20[$
-    - Mid: $[\$20, \$45[$
-    - High: $\ge \$45$
+
+  - Lower^+^: $< \$5$
+  - Low: $[\$5, \$20[$
+  - Mid: $[\$20, \$45[$
+  - High: $\ge \$45$
 
   These classes were defined by combining domain knowledge of the PC gaming market with an empirical inspection of the US price distribution across the Steam catalog. These thresholds reflect standard industry pricing segments—ranging from low-budget indie titles to mid-tier (AA) releases and flagship AAA games—while ensuring a balanced representation across the entire pricing spectrum;\
-    $\hookrightarrow$ Those steps gaves us the `steam_us_prices_all.csv` file
-  
+  $\hookrightarrow$ Those steps gaves us the `steam_us_prices_all.csv` file
+
 - Fourth, we performed an equal-allocation stratified random sampling (`set.seed(0)`) by drawing 500 `app_id`s from each tier, resulting in 2,000 games (`sampled_app_ids.csv`). This prevents an over-representation of Lower^+^ titles, which make up the vast majority of the Steam catalog. Given our research question, covering the entire pricing spectrum is essential to compare regional pricing strategies across market segments, from small indie studios to major AAA publishers. Drawing 500 titles per stratum provides a sufficiently large and representative sample within each tier to ensure statistically robust comparisons, while keeping data collection feasible under API rate limits;
 
 - Finally, we used these 2,000 sampled IDs to extract our final dataset (`steam_raw_prices.csv`) via the Steam API. For each game, we retrieved 15 variables across 12 different countries, resulting in 24,000 observations.
+
+### Database Presentation
 
 [Loading the file :]{.underline}
 
 ```{r}
 Steam_raw <- read.csv("Data/Raw_data/steam_data_raw.csv")
-slice_sample(Steam_raw,n=10)
+slice_sample(Steam_raw,n=5)
 ```
+
+The `Steam_raw` dataset is structured in a long (panel) format, where each observation corresponds to a unique game–country pair. Covering our stratified sample of 2,000 paid games across 12 selected markets, it provides a comprehensive snapshot of regional pricing and game-level metadata, as summarized in the table below :
+
+|                             |                                          |
+|-----------------------------|------------------------------------------|
+| Total Number of observation | `{r} nrow(Steam_raw)`                    |
+| Number of Raw Variables     | `{r} ncol(Steam_raw)`                    |
+| Number of Game              | `{r} n_distinct(Steam_raw$app_id)` |
+| Number of Countries | `{r} n_distinct(Steam_raw$country_code)` |
+
+The 15 Variables gives us differents informations :
+
+- **Identification and Geographic**
+  - `app_id` & `name`: gives us the unique Steam identificator and related name of the game;
+  - `country_code`: ISO alpha-2 code of the store where the game comes from;
+- **Price and currency variable**
+  - `currency`: currency use by the store;
+  - `price_initial` & `price_final`: give us the initial price of the game at his reales and when the data were recover;
+  - `discount_percent`: allows us to know if a difference between initial and final price is due to a limited-time promotion or an actual decreasse in the price;
+- **Games caracteristics**
+  - `realease_date`: release date on Steam, which can be used to gauge how long the game has been available or to track price trends over time.
+  - `is_indie`, `developers` & `publishers`: help distinguish independent studios from major publishers (and identify self-publishing when `developers == publishers`). The indie categorisation is inform by the publisher when he puts the game on Steam;
+  - `metacritic`: Aggregate critical score (a proxy for quality, primarily provided for major titles)
+- **Quality control**
+  - `type` & `is_free`: controle variable during the extraction to make sure we only have proper paid video games;
+  - `status`: Indicates whether the API request was successful (OK) or encountered an error or regional unavailability (HTTP Error, Invalid AppID).
+
 
 ## World Bank Data
