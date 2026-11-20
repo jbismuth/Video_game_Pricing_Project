@@ -35,22 +35,23 @@ Steam does not provide a direct, downloadable public dataset, so we used the off
 
 The extraction methodology followed five steps:
 
-- First, we retrieved the entire Steam catalog (along with US prices) by filtering strictly for games, excluding DLCs, soundtracks, and demos, which are not relevant to our study;
+-   First, we retrieved the entire Steam catalog (along with US prices) by filtering strictly for games, excluding DLCs, soundtracks, and demos, which are not relevant to our study;
 
-- Second, we kept only paid games (`price_us > 0`), since free-to-play titles rely on in-game monetization rather than upfront pricing strategies. 
+-   Second, we kept only paid games (`price_us > 0`), since free-to-play titles rely on in-game monetization rather than upfront pricing strategies.
 
-- Third, we divided the paid catalog into four price tiers:
-    - Lower^+^: $< \$5$
-    - Low: $[\$5, \$20[$
-    - Mid: $[\$20, \$45[$
-    - High: $\ge \$45$
+-   Third, we divided the paid catalog into four price tiers:
 
-  These classes were defined by combining domain knowledge of the PC gaming market with an empirical inspection of the US price distribution across the Steam catalog. These thresholds reflect standard industry pricing segments—ranging from low-budget indie titles to mid-tier (AA) releases and flagship AAA games—while ensuring a balanced representation across the entire pricing spectrum;\
+    -   Lower^+^: $< \$5$
+    -   Low: $[\$5, \$20[$
+    -   Mid: $[\$20, \$45[$
+    -   High: $\ge \$45$
+
+    These classes were defined by combining domain knowledge of the PC gaming market with an empirical inspection of the US price distribution across the Steam catalog. These thresholds reflect standard industry pricing segments—ranging from low-budget indie titles to mid-tier (AA) releases and flagship AAA games—while ensuring a balanced representation across the entire pricing spectrum;\
     $\hookrightarrow$ Those steps gaves us the `steam_us_prices_all.csv` file
-  
-- Fourth, we performed an equal-allocation stratified random sampling (`set.seed(0)`) by drawing 500 `app_id`s from each tier, resulting in 2,000 games (`sampled_app_ids.csv`). This prevents an over-representation of Lower^+^ titles, which make up the vast majority of the Steam catalog. Given our research question, covering the entire pricing spectrum is essential to compare regional pricing strategies across market segments, from small indie studios to major AAA publishers. Drawing 500 titles per stratum provides a sufficiently large and representative sample within each tier to ensure statistically robust comparisons, while keeping data collection feasible under API rate limits;
 
-- Finally, we used these 2,000 sampled IDs to extract our final dataset (`steam_raw_prices.csv`) via the Steam API. For each game, we retrieved 15 variables across 12 different countries, resulting in 24,000 observations.
+-   Fourth, we performed an equal-allocation stratified random sampling (`set.seed(0)`) by drawing 500 `app_id`s from each tier, resulting in 2,000 games (`sampled_app_ids.csv`). This prevents an over-representation of Lower^+^ titles, which make up the vast majority of the Steam catalog. Given our research question, covering the entire pricing spectrum is essential to compare regional pricing strategies across market segments, from small indie studios to major AAA publishers. Drawing 500 titles per stratum provides a sufficiently large and representative sample within each tier to ensure statistically robust comparisons, while keeping data collection feasible under API rate limits;
+
+-   Finally, we used these 2,000 sampled IDs to extract our final dataset (`steam_raw_prices.csv`) via the Steam API. For each game, we retrieved 15 variables across 12 different countries, resulting in 24,000 observations.
 
 [Loading the file :]{.underline}
 
@@ -60,3 +61,42 @@ slice_sample(Steam_raw,n=10)
 ```
 
 ## World Bank Data
+
+To contextualize regional pricing strategies on Steam with local macroeconomic conditions and PC/computer adoption, we use two complementary datasets covering the 12 countries in our Steam sample: a World Development Indicators (WDI) extract from the World Bank (`World_Bank_Data.csv`) and household computer access data (`Households with a computer.csv`).
+
+#### Sources & Reproducibility
+
+-   **World Bank (WDI):** Data extracted from the [World Bank World Development Indicators](https://databank.worldbank.org/source/world-development-indicators) portal by selecting the 12 target economies, the 7 macroeconomic/inequality indicators below, and the years 2002–2025, then exporting as CSV.
+-   **Households with a computer:** Country-level series on the share of households with a computer across the 12 economies (2002–2026), stored in `Households with a computer.csv` in the project's data folder.
+
+#### Loading Data and File Summaries
+
+```{r}
+
+wb_raw <- read_csv("Data/Raw_data/World_Bank_Data.csv", na = c("", "NA", ".."), show_col_types = FALSE)
+
+```
+
+```{r}
+#| label: tbl-wb-info
+#| tbl-cap: "Basic information for World_Bank_Data.csv"
+tibble(
+  Attribute = c("File name", "Number of rows", "Number of columns"),
+  Value = c("World_Bank_Data.csv", as.character(nrow(wb_raw)), as.character(ncol(wb_raw)))
+) |>
+  kable()
+```
+
+```{}
+```
+
+#### Main Variables Description
+
+-   **`NY.GDP.MKTP.KD` (GDP, constant 2015 US\$):** Measures aggregate economic output adjusted for inflation in constant 2015 US dollars, capturing overall market size.
+-   **`NY.GDP.MKTP.PP.KD` (GDP, PPP, constant 2021 international \$):** Adjusts aggregate GDP for purchasing power parity across countries, reflecting real domestic economic scale.
+-   **`NY.GDP.PCAP.KD` (GDP per capita, constant 2015 US\$):** Captures average income per person in real terms, a key proxy for consumer purchasing power.
+-   **`FP.CPI.TOTL.ZG` (Inflation, consumer prices, annual %):** Measures annual percentage changes in consumer prices, reflecting macroeconomic price instability or currency erosion.
+-   **`SP.POP.TOTL` (Population, total):** Total resident population of each country, indicating potential market scale.
+-   **`SI.POV.GINI` (Gini index):** Measures income inequality within a country (from 0 = perfect equality to 100 = maximal inequality), relevant to how publishers price across income tiers.
+-   **`PA.NUS.PPP` (PPP conversion factor, GDP):** Number of local currency units required to buy the same basket of goods a US dollar buys in the United States.
+-   **Share of households with a computer (`Households with a computer.csv`):** Percentage of households with access to a computer in a given country and year, proxying hardware readiness for PC gaming.
