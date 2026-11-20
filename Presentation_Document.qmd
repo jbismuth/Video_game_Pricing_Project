@@ -21,6 +21,7 @@ library(here)
 library(ggplot2)
 library(dplyr)
 library(tidyr)
+library(knitr)
 ```
 
 # Databases Presentation
@@ -64,6 +65,8 @@ slice_sample(Steam_raw,n=10)
 
 To contextualize regional pricing strategies on Steam with local macroeconomic conditions and PC/computer adoption, we use two complementary datasets covering the 12 countries in our Steam sample: a World Development Indicators (WDI) extract from the World Bank (`World_Bank_Data.csv`) and household computer access data (`Households with a computer.csv`).
 
+We selected these 12 countries across different continents to capture strong contrasts in economic development, purchasing power, inflation, income inequality, and computer adoption. Covering both high-income or mature markets (such as the United States, Germany, France, Japan, and Switzerland) and emerging or more volatile economies (such as Brazil, Argentina, India, Indonesia, Mexico, South Africa, and Turkiye) allows us to test whether game publishers adjust Steam prices to local economic conditions or keep pricing more uniform across regions.
+
 #### Sources & Reproducibility
 
 -   **World Bank (WDI):** Data extracted from the [World Bank World Development Indicators](https://databank.worldbank.org/source/world-development-indicators) portal by selecting the 12 target economies, the 7 macroeconomic/inequality indicators below, and the years 2002–2025, then exporting as CSV.
@@ -87,9 +90,6 @@ tibble(
   kable()
 ```
 
-```{}
-```
-
 #### Main Variables Description
 
 -   **`NY.GDP.MKTP.KD` (GDP, constant 2015 US\$):** Measures aggregate economic output adjusted for inflation in constant 2015 US dollars, capturing overall market size.
@@ -99,4 +99,11 @@ tibble(
 -   **`SP.POP.TOTL` (Population, total):** Total resident population of each country, indicating potential market scale.
 -   **`SI.POV.GINI` (Gini index):** Measures income inequality within a country (from 0 = perfect equality to 100 = maximal inequality), relevant to how publishers price across income tiers.
 -   **`PA.NUS.PPP` (PPP conversion factor, GDP):** Number of local currency units required to buy the same basket of goods a US dollar buys in the United States.
--   **Share of households with a computer (`Households with a computer.csv`):** Percentage of households with access to a computer in a given country and year, proxying hardware readiness for PC gaming.
+
+Numbers of rows and columns
+
+```{r}
+cat("Rows:", nrow(wb_raw), "| Columns:", ncol(wb_raw), "\n")
+head(wb_raw, 5)
+
+```
