@@ -92,7 +92,9 @@ The 15 Variables gives us differents informations :
 
 ## World Bank Data
 
-To contextualize regional pricing strategies on Steam with local macroeconomic conditions and PC/computer adoption, we use two complementary datasets covering the 12 countries in our Steam sample: a World Development Indicators (WDI) extract from the World Bank (`World_Bank_Data.csv`) and household computer access data (`Households with a computer.csv`).
+Maintained by the World Bank, the **World Development Indicators (WDI)** is a major international database of harmonized macroeconomic, demographic, and socioeconomic statistics across countries and over time. For regional video game pricing on Steam, these indicators capture key local market conditions: market scale (GDP and population), purchasing power (GDP per capita and PPP adjustments), price/currency stability (inflation), and income inequality (Gini index). Together, they help show whether publishers tailor regional prices to local economic conditions or keep prices more uniform across markets.
+
+To complement macroeconomic indicators with digital infrastructure, we also rely on `Households with a computer.csv`, which reports the percentage of households with access to a computer across the same 12 economies from 2002 to 2026. Since PC video games require compatible hardware, household computer ownership serves as a practical proxy for baseline digital readiness and potential addressable audience size across countries.
 
 ### Sources & Reproducibility
 
@@ -103,21 +105,15 @@ To contextualize regional pricing strategies on Steam with local macroeconomic c
 
 ```{r}
 
-wb_raw <- read.csv("Data/Raw_data/World_Bank_Data.csv")
-
-```
 
 ```{r}
-#| label: tbl-wb-info
-#| tbl-cap: "Basic information for World_Bank_Data.csv"
-tibble(
-  Attribute = c("File name", "Number of rows", "Number of columns"),
-  Value = c("World_Bank_Data.csv", as.character(nrow(wb_raw)), as.character(ncol(wb_raw)))
-) |>
-  kable()
+
 ```
 
-### Main Variables Description
+To complement these macroeconomic indicators with digital readiness, we also load Households with a computer.csv, which tracks the percentage of households equipped with a computer across our 12 target countries from 2002 to 2026:
+
+
+#### Main Variables Description
 
 -   **`NY.GDP.MKTP.KD` (GDP, constant 2015 US\$):** Measures aggregate economic output adjusted for inflation in constant 2015 US dollars, capturing overall market size.
 -   **`NY.GDP.MKTP.PP.KD` (GDP, PPP, constant 2021 international \$):** Adjusts aggregate GDP for purchasing power parity across countries, reflecting real domestic economic scale.
@@ -126,4 +122,11 @@ tibble(
 -   **`SP.POP.TOTL` (Population, total):** Total resident population of each country, indicating potential market scale.
 -   **`SI.POV.GINI` (Gini index):** Measures income inequality within a country (from 0 = perfect equality to 100 = maximal inequality), relevant to how publishers price across income tiers.
 -   **`PA.NUS.PPP` (PPP conversion factor, GDP):** Number of local currency units required to buy the same basket of goods a US dollar buys in the United States.
--   **Share of households with a computer (`Households with a computer.csv`):** Percentage of households with access to a computer in a given country and year, proxying hardware readiness for PC gaming.
+
+Slice sample:
+
+```{r}
+#| label: sample-wb-raw
+set.seed(42)
+slice_sample(wb_raw, n = 5)
+```
