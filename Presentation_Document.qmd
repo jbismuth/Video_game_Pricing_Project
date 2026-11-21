@@ -1,6 +1,6 @@
 ---
 title: "Video game Pricing"
-author: Jeremy Bismhuth & Zachary Goulby
+author: Jérémy Bismhuth & Zachary Goulby
 format: html
 editor: visual
 langage: en
@@ -8,7 +8,7 @@ langage: en
 
 [Link to the Github repository]{.underline}: [Video game Pricing Project](https://github.com/jbismuth/Video_game_Pricing_Project)
 
-# Coding Environement preparation
+# Coding Environment preparation
 
 ```{r}
 #| message: FALSE
@@ -48,11 +48,11 @@ The extraction methodology followed five steps:
   - High: $\ge \$45$
 
   These classes were defined by combining domain knowledge of the PC gaming market with an empirical inspection of the US price distribution across the Steam catalog. These thresholds reflect standard industry pricing segments—ranging from low-budget indie titles to mid-tier (AA) releases and flagship AAA games—while ensuring a balanced representation across the entire pricing spectrum;\
-  $\hookrightarrow$ Those steps gaves us the `steam_us_prices_all.csv` file
+  $\hookrightarrow$ Those steps gave us the `steam_us_prices_all.csv` file
 
 - Fourth, we performed an equal-allocation stratified random sampling (`set.seed(0)`) by drawing 500 `app_id`s from each tier, resulting in 2,000 games (`sampled_app_ids.csv`). This prevents an over-representation of Lower^+^ titles, which make up the vast majority of the Steam catalog. Given our research question, covering the entire pricing spectrum is essential to compare regional pricing strategies across market segments, from small indie studios to major AAA publishers. Drawing 500 titles per stratum provides a sufficiently large and representative sample within each tier to ensure statistically robust comparisons, while keeping data collection feasible under API rate limits;
 
-- Finally, we used these 2,000 sampled IDs to extract our final dataset (`steam_raw_prices.csv`) via the Steam API. For each game, we retrieved 15 variables across 12 different countries, resulting in 24,000 observations.
+- Finally, we used these 2,000 sampled IDs to extract our final dataset (`steam_data_raw.csv`) via the Steam API. For each game, we retrieved 15 variables across 12 different countries, resulting in 24,000 observations.
 
 ### Database Presentation
 
@@ -80,14 +80,40 @@ The 15 Variables gives us differents informations :
 - **Price and currency variable**
   - `currency`: currency use by the store;
   - `price_initial` & `price_final`: give us the initial price of the game at his reales and when the data were recover;
-  - `discount_percent`: allows us to know if a difference between initial and final price is due to a limited-time promotion or an actual decreasse in the price;
-- **Games caracteristics**
-  - `realease_date`: release date on Steam, which can be used to gauge how long the game has been available or to track price trends over time.
+  - `discount_percent`: allows us to know if a difference between initial and final price is due to a limited-time promotion or an actual decrease in the price;
+- **Games characteristics**
+  - `release_date`: release date on Steam, which can be used to gauge how long the game has been available or to track price trends over time.
   - `is_indie`, `developers` & `publishers`: help distinguish independent studios from major publishers (and identify self-publishing when `developers == publishers`). The indie categorisation is inform by the publisher when he puts the game on Steam;
   - `metacritic`: Aggregate critical score (a proxy for quality, primarily provided for major titles)
 - **Quality control**
-  - `type` & `is_free`: controle variable during the extraction to make sure we only have proper paid video games;
+  - `type` & `is_free`: control variable during the extraction to make sure we only have proper paid video games;
   - `status`: Indicates whether the API request was successful (OK) or encountered an error or regional unavailability (HTTP Error, Invalid AppID).
+  
+```{r}
+Steam_raw |>
+  filter(
+    status == "OK",
+    country_code == "US",
+    !is.na(price_initial)
+  ) |>
+  mutate(
+    release_year = as.numeric(sub(".*(\\d{4}).*", "\\1", release_date))
+  ) |>
+  filter(release_year >= 2015, release_year <= 2026) |>
+  group_by(release_year) |>
+  summarise(mean_price = mean(price_initial, na.rm = TRUE), .groups = "drop") |>
+  ggplot(aes(x = release_year, y = mean_price)) +
+  geom_line(linewidth = 1) +
+  geom_point(size = 2) +
+  scale_x_continuous(breaks = seq(2015, 2026, by = 1)) +
+  labs(
+    title = "Average Initial Game Price on Steam by Release Year (US Store)",
+    x = "Release Year",
+    y = "Average Initial Price (USD)"
+  ) +
+  theme_bw()
+```
+
 
 ## World Bank Data
 
@@ -146,3 +172,11 @@ slice_sample(hh_raw, n = 5)
 -   **`SI.POV.GINI` (Gini index):** Measures income inequality within a country (from 0 = perfect equality to 100 = maximal inequality), relevant to how publishers price across income tiers.
 -   **`PA.NUS.PPP` (PPP conversion factor, GDP):** Number of local currency units required to buy the same basket of goods a US dollar buys in the United States.
 -   **Share of households with a computer (Households with a computer.csv)**: Percentage of households with access to a computer in a given country and year, proxying hardware readiness for PC gaming.
+
+## Data Cleaning & Joining Strategy
+
+To prepare the data for our empirical and visual analysis, we implement a lightweight cleaning and merging pipeline across our three raw datasets:
+
+- **Steam data (`steam_data_raw.csv`)**: Since most filtering (excluding DLCs, demos, and free-to-play titles) was performed upstream during API extraction, cleaning mainly consists of keeping successful queries (`status == "OK"`), removing residual missing prices, and harmonizing the `release_date` column (which uses different date formats between the US store and other regions) to extract the release year.
+- **Macroeconomic & digital data (`World_Bank_Data.csv` and `Households with a computer.csv`)**: We remove trailing metadata rows from the World Bank export, pivot both datasets from wide (one column per year) to long format, strip the `%` symbols from the ITU computer ownership series to convert them to numeric values, and retain the most recent non-missing observation per country.
+- **Joining & currency conversion**: We map Steam's ISO Alpha-2 country codes (`US`, `FR`, `BR`, etc.) to the World Bank's ISO Alpha-3 codes (`USA`, `FRA`, `BRA`, etc.) and perform a `left_join()` on country to attach macroeconomic and digital indicators to each game–country observation. Finally, local prices are converted into USD using official exchange rates only where `currency != "USD"`, ensuring that Argentina (`AR`) and Turkey (`TR`)—already billed in USD by Steam—are not converted twice.
