@@ -89,29 +89,52 @@ The 15 Variables gives us differents informations :
   - `type` & `is_free`: controle variable during the extraction to make sure we only have proper paid video games;
   - `status`: Indicates whether the API request was successful (OK) or encountered an error or regional unavailability (HTTP Error, Invalid AppID).
 
-
 ## World Bank Data
 
 Maintained by the World Bank, the **World Development Indicators (WDI)** is a major international database of harmonized macroeconomic, demographic, and socioeconomic statistics across countries and over time. For regional video game pricing on Steam, these indicators capture key local market conditions: market scale (GDP and population), purchasing power (GDP per capita and PPP adjustments), price/currency stability (inflation), and income inequality (Gini index). Together, they help show whether publishers tailor regional prices to local economic conditions or keep prices more uniform across markets.
 
-To complement macroeconomic indicators with digital infrastructure, we also rely on `Households with a computer.csv`, which reports the percentage of households with access to a computer across the same 12 economies from 2002 to 2026. Since PC video games require compatible hardware, household computer ownership serves as a practical proxy for baseline digital readiness and potential addressable audience size across countries.
+To complement macroeconomic indicators with digital infrastructure, we also rely on `Households with a computer.csv`, which reports the percentage of households with access to a computer and the internet across the same 12 economies from 2002 to 2026. Since PC video games require compatible hardware, household computer ownership serves as a practical proxy for baseline digital readiness and potential addressable audience size across countries. This dataset has many NA but can be interesting to have a more profound analysis on some countries or chosen time period.
 
 ### Sources & Reproducibility
 
 -   **World Bank (WDI):** Data extracted from the [World Bank World Development Indicators](https://databank.worldbank.org/source/world-development-indicators) portal by selecting the 12 target economies, the 7 macroeconomic/inequality indicators below, and the years 2002–2025, then exporting as CSV.
--   **Households with a computer:** Country-level series on the share of households with a computer across the 12 economies (2002–2026), stored in `Households with a computer.csv` in the project's data folder.
+-   **Households with a computer (ITU):** Country-level series on the share of households with a computer across the 12 economies (2002–2026), extracted from the [ITU DataHub](https://datahub.itu.int/indicators/) and stored in `Households with a computer.csv` in the project's data folder.
 
 ### Loading Data and File Summaries
 
 ```{r}
+#| label: load-wb-hh
+wb_raw <- read.csv(
+  "Data/Raw_data/World_Bank_Data.csv",
+  na.strings = c("", "NA", ".."),
+  check.names = FALSE
+)
+slice_sample(wb_raw, n = 5)
 
-
-```{r}
-
+hh_raw <- read.csv(
+  "Data/Raw_data/Households with a computer.csv",
+  na.strings = c("", "NA", "-"),
+  check.names = FALSE
+)
+slice_sample(hh_raw, n = 5)
 ```
 
-To complement these macroeconomic indicators with digital readiness, we also load Households with a computer.csv, which tracks the percentage of households equipped with a computer across our 12 target countries from 2002 to 2026:
+**World Bank (`World_Bank_Data.csv`) :**
 
+|                             |                                                          |
+|-----------------------------|----------------------------------------------------------|
+| Total Number of observation | `{r} nrow(wb_raw)`                                       |
+| Number of Raw Variables     | `{r} ncol(wb_raw)`                                       |
+| Number of Countries         | `{r} n_distinct(wb_raw[["Country Code"]], na.rm = TRUE)` |
+| Number of Indicators        | `{r} n_distinct(wb_raw[["Series Code"]], na.rm = TRUE)`  |
+
+**Households with a computer (`Households with a computer.csv`) :**
+
+|                             |                                                     |
+|-----------------------------|-----------------------------------------------------|
+| Total Number of observation | `{r} nrow(hh_raw)`                                  |
+| Number of Raw Variables     | `{r} ncol(hh_raw)`                                  |
+| Number of Countries         | `{r} n_distinct(hh_raw[["Economy"]], na.rm = TRUE)` |
 
 #### Main Variables Description
 
@@ -122,11 +145,4 @@ To complement these macroeconomic indicators with digital readiness, we also loa
 -   **`SP.POP.TOTL` (Population, total):** Total resident population of each country, indicating potential market scale.
 -   **`SI.POV.GINI` (Gini index):** Measures income inequality within a country (from 0 = perfect equality to 100 = maximal inequality), relevant to how publishers price across income tiers.
 -   **`PA.NUS.PPP` (PPP conversion factor, GDP):** Number of local currency units required to buy the same basket of goods a US dollar buys in the United States.
-
-Slice sample:
-
-```{r}
-#| label: sample-wb-raw
-set.seed(42)
-slice_sample(wb_raw, n = 5)
-```
+-   **Share of households with a computer (Households with a computer.csv)**: Percentage of households with access to a computer in a given country and year, proxying hardware readiness for PC gaming.
