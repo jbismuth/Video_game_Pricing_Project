@@ -24,6 +24,12 @@ library(tidyr)
 library(knitr)
 ```
 
+# Research question
+
+We aim to investigate spatial price discrimination in the digital video game market. This market is particularly interesting because distribution entails near-zero marginal costs for sellers, minimal transaction effort for buyers, and allows for virtually instantaneous worldwide distribution. Specifically, we analyze how video game prices on Steam vary across different countries and evaluate to what extent publishers adapt their pricing strategies to local macroeconomic conditions, such as GDP per capita, Purchasing Power Parity (PPP), and inflation.
+
+Our study will also tackle some sub-questions, such as whether the pricing strategy differs between small independent studios, which rely heavily on Steam's regional pricing recommendations, and AAA ones, which already have global recognition. We will also dig deeper by using household computer ownership as a proxy for market size to see if prices are consistent with it.
+
 # Databases Presentation
 
 ## Steam Data
